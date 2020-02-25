@@ -1,12 +1,11 @@
 import unittest
 
-from main import Buscador
+from transfermarkt_scrapper import buscador
 
 
 class TestBuscadorEquipe(unittest.TestCase):
 
     def test_deve_retornar_lista_de_jogadores_por_equipe(self):
-        buscador = Buscador()
         resultado = buscador.buscar_jogadores_por_equipe(
             "https://www.transfermarkt.com.br/centro-sportivo-alagoano-al-/startseite/verein/18545")  # csa
         esperado = [

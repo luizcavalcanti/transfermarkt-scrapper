@@ -1,30 +1,34 @@
-from selenium import webdriver
+import requests
+
+from bs4 import BeautifulSoup
 
 
-class Buscador:
+def buscar_jogadores_por_equipe(url_equipe):
+    resposta = requests.get(url_equipe, headers={'User-Agent': 'Mozilla/5.0'}).content
+    bs = BeautifulSoup(resposta, features="html.parser")
 
-    def buscar_jogadores_por_equipe(self, url_equipe):
-        browser = webdriver.Firefox()
-        browser.get(url_equipe)
-        lista_jogadores = []
+    lista_jogadores = []
 
-        jogadores = browser.find_elements_by_css_selector("table.items td.posrela a.spielprofil_tooltip")
-        for jogador in jogadores:
-            if not jogador.text == "":
-                lista_jogadores.append({"nome": jogador.text, "url": jogador.get_property("href")})
+    jogadores = bs.select("table.items td.posrela a.spielprofil_tooltip")
+    for jogador in jogadores:
+        if not jogador.text == "":
+            url = jogador.get("href")
+            if url.startswith("/"):
+                url = "https://www.transfermarkt.com.br" + url
 
-        browser.quit()
-        return lista_jogadores
+            lista_jogadores.append({"nome": jogador.text, "url": url})
 
-    def buscar_empresario(self, url_jogador):
-        browser = webdriver.Firefox()
-        browser.get(url_jogador)
+    del lista_jogadores[1::2]
+    return lista_jogadores
 
-        resultado = "N/A"
-        nome_empresarios = browser.find_elements_by_css_selector(".dataValue > a")
-        for ancora in nome_empresarios:
-            if "berater" in ancora.get_property("href"):
-                resultado = ancora.text
 
-        browser.quit()
-        return resultado
+def buscar_empresario(url_jogador):
+    resposta = requests.get(url_jogador, headers={'User-Agent': 'Mozilla/5.0'}).content
+    bs = BeautifulSoup(resposta, features="html.parser")
+
+    nome_empresarios = bs.select(".dataValue > a")
+    for ancora in nome_empresarios:
+        if "berater" in ancora.get("href"):
+            return ancora.text
+
+    return "N/A"
